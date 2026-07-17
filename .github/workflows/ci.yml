@@ -1,5 +1,5 @@
 # Generated and maintained by the exasol-toolbox.
-# Last generated with exasol-toolbox version 10.2.0.
+# Last generated with exasol-toolbox version 10.3.0.
 name: CI
 
 on:
@@ -11,7 +11,7 @@ jobs:
     name: Merge Gate
     uses: ./.github/workflows/merge-gate.yml
     secrets:
-      SONARQUBE_GITHUB_SECRET: ${{ secrets.SONARQUBE_GITHUB_SECRET }}
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
     permissions:
       contents: read
 
@@ -26,6 +26,6 @@ jobs:
       needs.merge-gate.result != 'cancelled'
     uses: ./.github/workflows/report.yml
     secrets:
-      SONARQUBE_GITHUB_SECRET: ${{ secrets.SONARQUBE_GITHUB_SECRET }}
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
     permissions:
       contents: read

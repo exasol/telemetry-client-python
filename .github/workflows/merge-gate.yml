@@ -1,11 +1,11 @@
 # Generated and maintained by the exasol-toolbox.
-# Last generated with exasol-toolbox version 10.2.0.
+# Last generated with exasol-toolbox version 10.3.0.
 name: Merge-Gate
 
 on:
   workflow_call:
     secrets:
-      SONARQUBE_GITHUB_SECRET:
+      SONAR_TOKEN:
         required: true
 
 jobs:
@@ -28,7 +28,7 @@ jobs:
       - run-fast-tests
     uses: ./.github/workflows/report.yml
     secrets:
-      SONARQUBE_GITHUB_SECRET: ${{ secrets.SONARQUBE_GITHUB_SECRET }}
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
     permissions:
       contents: read
 
@@ -52,7 +52,6 @@ jobs:
     uses: ./.github/workflows/slow-checks.yml
     permissions:
       contents: read
-
 
   # This job ensures inputs have been executed successfully.
   allow-merge:

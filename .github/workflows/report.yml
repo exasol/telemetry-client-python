@@ -1,11 +1,11 @@
 # Generated and maintained by the exasol-toolbox.
-# Last generated with exasol-toolbox version 10.2.0.
+# Last generated with exasol-toolbox version 10.3.0.
 name: Status Report
 
 on:
   workflow_call:
     secrets:
-      SONARQUBE_GITHUB_SECRET:
+      SONAR_TOKEN:
         required: true
 
 jobs:
@@ -46,11 +46,5 @@ jobs:
       - name: Upload to Sonar
         id: upload-to-sonar
         env:
-          SONAR_TOKEN: "${{ secrets.SONARQUBE_GITHUB_SECRET }}"
+          SONAR_TOKEN: "${{ secrets.SONAR_TOKEN }}"
         run: poetry run -- nox -s sonar:check
-
-      - name: Generate GitHub Summary
-        id: generate-github-summary
-        run: |-
-          echo -e "# Summary\n" >> $GITHUB_STEP_SUMMARY
-          poetry run -- nox -s dependency:licenses >> $GITHUB_STEP_SUMMARY
