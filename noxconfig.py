@@ -8,6 +8,8 @@ class Config(BaseConfig):
 
 
 PROJECT_CONFIG = Config(
+    # this is "telemetry" and not "telemetry-client-python" to have the package exasol.telemetry.client,
+    # not exasol.telemetry-client-python
     project_name="telemetry",
     root_path=Path(__file__).parent,
     python_versions=("3.13",),
