@@ -8,7 +8,7 @@ class Config(BaseConfig):
 
 
 PROJECT_CONFIG = Config(
-    project_name="telemetry-client-python",
+    project_name="telemetry",
     root_path=Path(__file__).parent,
     python_versions=("3.13",),
     exasol_versions=("8.29.13",),
