@@ -97,6 +97,10 @@ extend-select = ["F401"]
 unfixable = []
 
 [tool.sonar]
+projectKey = "com.exasol:telemetry-client-python"
+host.url = "https://sonarcloud.io"
+organization = "exasol"
+
 # TODO: project is public now, integrate with sonar properly
 #projectKey = "integration-telemetry"
 # we have to use the projectName, as global project name is customized
