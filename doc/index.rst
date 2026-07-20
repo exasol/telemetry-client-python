@@ -28,11 +28,9 @@ Documentation of  telemetry
    :maxdepth: 1
    :hidden:
 
-   design
    user_guide
    client-python
    developer_guide
-   deployment
    api
    faq
    changes/changelog
