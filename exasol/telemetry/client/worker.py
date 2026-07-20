@@ -153,8 +153,8 @@ def worker_proc(msg_queue: queue.Queue):
         if not isinstance(msg, WorkerMessage):
             continue
         if msg.command == WorkerCommand.Track:
-            assert msg.feature is not None and msg.timestamp is not None
-            data[msg.feature].append(msg.timestamp)
+            if msg.feature is not None and msg.timestamp is not None:
+                data[msg.feature].append(msg.timestamp)
         elif msg.command == WorkerCommand.Terminate:
             return
 
@@ -167,7 +167,8 @@ def start_worker() -> bool:
     """
     global _worker, _queue
 
-    assert _worker is None
+    if _worker is not None:
+        return False
     _queue = queue.Queue(maxsize=MAX_QUEUE_CAPACITY)
     _worker = threading.Thread(target=worker_proc, args=(_queue,))
     _worker.start()
@@ -182,9 +183,8 @@ def stop_worker(flush_buffers: bool):
     """
     global _worker, _queue
 
-    if _worker is None:
+    if _worker is None or _queue is None:
         return
-    assert _queue is not None
     if flush_buffers:
         _queue.put(WorkerMessage.make_send_buffers())
     _queue.put(WorkerMessage.make_terminate())
