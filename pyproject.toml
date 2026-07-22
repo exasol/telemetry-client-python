@@ -1,0 +1,102 @@
+[project]
+name = "exasol-telemetry-client"
+version = "0.1.5"
+description = ""
+authors = [{ name = "Exasol AG", email = "opensource@exasol.com" }]
+requires-python = ">=3.10,<4.0"
+readme = "README.md"
+license = "MIT"
+keywords = [
+    "exasol",
+    "telemetry",
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+]
+dependencies = [
+    "requests>=2.33.0,<3",
+    "urllib3>=2.6.3,<3",
+]
+dynamic = ["dependencies"]
+
+[dependency-groups]
+dev = [
+    "exasol-toolbox>=10.0.0,<11",
+    "types-requests>=2.32.4.20260107,<3",
+    "poetry>=2.4.1,<3",
+]
+
+[tool.poetry]
+requires-poetry = ">=2.3.0"
+packages = [
+    { include = "exasol/telemetry/client" },
+]
+
+[tool.poetry.requires-plugins]
+poetry-plugin-export = ">=1.8"
+
+[project.urls]
+Homepage = "https://github.com/exasol/telemetry-client-python"
+Repository = "https://github.com/exasol/telemetry-client-python"
+
+[build-system]
+requires = ["poetry-core>=2.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.pytest.ini_options]
+log_cli = false
+log_cli_level = "INFO"
+log_cli_format = "%(asctime)s [%(levelname)8s] %(message)s (%(filename)s:%(lineno)s)"
+log_cli_date_format = "%Y-%m-%d %H:%M:%S"
+
+[tool.coverage.run]
+relative_files = true
+source = [
+    "exasol",
+]
+
+[tool.coverage.report]
+fail_under = 15
+
+[tool.black]
+line-length = 88
+verbose = false
+include = "\\.pyi?$"
+
+[tool.isort]
+profile = "black"
+force_grid_wrap = 2
+
+[tool.pylint.master]
+fail-under = 5.0
+ignore = []
+
+[tool.pylint.format]
+max-line-length = 88
+max-module-lines = 800
+
+[[tool.mypy.overrides]]
+module = [
+    "test.*",
+]
+ignore_errors = true
+
+[tool.ruff.lint]
+extend-ignore = [
+    "E", # Syntax errors
+    "F", # Pyflakes rules (excluding F401)
+    "UP", # pyupgrade rules
+    "D", # Docstring rules
+]
+extend-select = ["F401"]
+unfixable = []
+
+[tool.sonar]
+projectKey = "com.exasol:telemetry-client-python"
+host.url = "https://sonarcloud.io"
+organization = "exasol"
