@@ -8,5 +8,5 @@
 hidden:
 ---
 unreleased
-changelog_0.1.6
+changes_0.1.6
 ```
