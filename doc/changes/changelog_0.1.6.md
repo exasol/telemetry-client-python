@@ -2,4 +2,4 @@
 
 ## Summary
 
-Technical release after projects splitting - removes unnecessary click release.
+Technical release after projects splitting - removes unnecessary click dependency.
