@@ -6,6 +6,8 @@ import typing as tt
 ENV_DISABLE = "EXASOL_TELEMETRY_DISABLE"
 # Endpoint (has to be valid http/https URL)
 ENV_ENDPOINT = "EXASOL_TELEMETRY_ENDPOINT"
+# Enable console logging of telemetry events
+ENV_LOGGING = "EXASOL_TELEMETRY_VERBOSE"
 # GitHub CI sets this to true during execution
 ENV_CI = "CI"
 
@@ -49,3 +51,11 @@ def was_enabled() -> bool:
     """
     conf = get()
     return conf is not None and conf.enabled
+
+
+def disable():
+    """
+    Call disables telemetry entirely for all subsequent calls.
+    """
+    conf = Config(enabled=False, endpoint=DEFAULT_ENDPOINT)
+    store(conf)

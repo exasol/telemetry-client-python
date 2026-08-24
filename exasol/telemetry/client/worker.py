@@ -169,6 +169,8 @@ def start_worker() -> bool:
 
     if _worker is not None:
         return False
+    if not config.was_enabled():
+        return False
     _queue = queue.Queue(maxsize=MAX_QUEUE_CAPACITY)
     _worker = threading.Thread(target=worker_proc, args=(_queue,))
     _worker.start()
@@ -193,9 +195,11 @@ def stop_worker(flush_buffers: bool):
     _queue = None
 
 
-def track(feature: protocol.Feature):
+def track(category: str, product_version: str, feature: protocol.Feature):
     """
     Track feature usage. Library has to be initialized with `setup()` call.
+    :param category: product name
+    :param product_version: product version
     :param feature: string feature to track.
     """
     if not config.was_enabled():

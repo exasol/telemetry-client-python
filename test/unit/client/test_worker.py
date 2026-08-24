@@ -3,6 +3,7 @@ import time
 from unittest import mock
 
 from exasol.telemetry.client import *
+from exasol.telemetry.client.setup import setup
 from exasol.telemetry.client import (
     config,
     protocol,
@@ -15,10 +16,10 @@ def test_stop_worker_doing_nothing_without_worker():
 
 
 def test_track_not_init(telemetry_reset):
-    worker.track("feature")
+    worker.track("test-product", "0.1", "feature")
 
     assert not setup(disable=True)
-    worker.track("feature")
+    worker.track("test-product", "0.1", "feature")
 
 
 def test_clear_expired_features():
@@ -41,12 +42,12 @@ def test_clear_expired_features():
 
 
 @mock.patch("requests.post")
-def test_track(post_mock: mock.MagicMock, telemetry_reset, telemetry_unset_ci):
+def test_track(post_mock: mock.MagicMock, telemetry_reset, telemetry_unset_ci, telemetry_unset_disable):
     post_mock.return_value = mock.MagicMock(status_code=200)
 
     assert setup()
-    worker.track("feature1")
-    worker.track("feature2")
+    worker.track("test", "0.1", "feature1")
+    worker.track("test", "0.1", "feature2")
     shutdown(flush_buffers=True)
     post_mock.assert_called_once()
 
@@ -97,7 +98,7 @@ def test_worker_proc_not_sent_when_disabled(
     assert not setup(disable=True)
     assert config.was_setup()
     assert not config.was_enabled()
-    track("test")
+    track("test", "0.1", "test-feature")
     shutdown(flush_buffers=True)
 
     mock_post.assert_not_called()
