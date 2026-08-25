@@ -42,29 +42,69 @@ class WorkerCommand(enum.Enum):
 @dataclasses.dataclass(frozen=True)
 class WorkerMessage:
     command: WorkerCommand
-    feature: tt.Optional[protocol.Feature]
-    timestamp: tt.Optional[protocol.Timestamp]
+    product_name: tt.Optional[protocol.ProductName] = None
+    product_version: tt.Optional[protocol.ProductVersion] = None
+    feature: tt.Optional[protocol.Feature] = None
+    timestamp: tt.Optional[protocol.Timestamp] = None
 
     @classmethod
-    def make_track(cls, feature: protocol.Feature) -> "WorkerMessage":
+    def make_track(
+            cls,
+            product_name: protocol.ProductName,
+            product_version: protocol.ProductVersion,
+            feature: protocol.Feature
+    ) -> "WorkerMessage":
         return WorkerMessage(
             command=WorkerCommand.Track,
+            product_name=product_name,
+            product_version=product_version,
             feature=feature,
             timestamp=protocol.get_current_ts(),
         )
 
     @classmethod
     def make_send_buffers(cls) -> "WorkerMessage":
-        return WorkerMessage(
-            command=WorkerCommand.SendBuffers, feature=None, timestamp=None
-        )
+        return WorkerMessage(command=WorkerCommand.SendBuffers)
 
     @classmethod
     def make_terminate(cls) -> "WorkerMessage":
-        return WorkerMessage(
-            command=WorkerCommand.Terminate, feature=None, timestamp=None
-        )
+        return WorkerMessage(command=WorkerCommand.Terminate)
 
+
+class WorkerDeadlineQueue:
+    """
+    Queue with deadline - moment in the future when we
+    want to stop waiting for a message to arrive.
+    """
+    def __init__(self, msg_queue: queue.Queue):
+        self._queue = msg_queue
+        self._deadline_ts: tt.Optional[protocol.Timestamp] = None
+
+    def set_deadline(self, seconds: float):
+        self._deadline_ts = protocol.get_current_ts() + seconds
+
+    def deadline_expired(self) -> bool:
+        return protocol.get_current_ts() > self._deadline_ts
+
+    def seconds_to_deadline(self, now: tt.Optional[protocol.Timestamp] = None) -> float:
+        """
+        Get amount of seconds until deadline. If expired, return 0
+        :param now: optional current time (used for testing)
+        :return: count of seconds
+        """
+        if self._deadline_ts is None:
+            return 0.0
+        if now is None:
+            now = protocol.get_current_ts()
+        dt = self._deadline_ts - now
+        return max(dt, 0.0)
+
+    def get_msg(self) -> tt.Optional[WorkerMessage]:
+        try:
+            msg = self._queue.get(timeout=self.seconds_to_deadline())
+            return msg if isinstance(msg, WorkerMessage) else None
+        except queue.Empty:
+            return None
 
 def send_features(features: protocol.Features) -> bool:
     """
@@ -109,49 +149,26 @@ def clear_expired_features(features: protocol.Features, now: protocol.Timestamp)
         features.pop(key)
 
 
-def get_msg_timeout(
-    next_sent_ts: protocol.Timestamp, now: tt.Optional[protocol.Timestamp] = None
-) -> protocol.Timestamp:
-    """
-    Get amount of seconds to wait for new message.
-    :param next_sent_ts: when next data push is planned
-    :param now: optional argument to redefine the current timestamp. Used for testing
-    :return: Amount of seconds to sleep before the next send attempt.
-    """
-    if now is None:
-        now = protocol.get_current_ts()
-    dt = next_sent_ts - now
-    # if interval has expired, return 0
-    return max(dt, 0)
-
-
 def worker_proc(msg_queue: queue.Queue):
     """
     Worker procedure - consumes the queue, periodically sends the accumulated data.
     :param msg_queue: queue to consume
     """
     data: protocol.Features = collections.defaultdict(list)
-    next_sent_ts = protocol.get_current_ts() + DATA_SEND_FIRST_INTERVAL_SECONDS
+    deadline_queue = WorkerDeadlineQueue(msg_queue)
+    deadline_queue.set_deadline(DATA_SEND_FIRST_INTERVAL_SECONDS)
 
     while True:
-        try:
-            msg = msg_queue.get(timeout=get_msg_timeout(next_sent_ts))
-        except queue.Empty:
-            msg = None
-        now = protocol.get_current_ts()
-
-        # if interval has expired, or we have an explicit send request, send the data
-        if now > next_sent_ts or (
-            msg is not None and msg.command == WorkerCommand.SendBuffers
-        ):
+        msg = deadline_queue.get_msg()
+        if msg is None or msg.command == WorkerCommand.SendBuffers:
+            # deadline has expired or we've asked to flush buffers
             if send_features(data):
                 data.clear()
             else:
-                clear_expired_features(data, now)
-            next_sent_ts = now + DATA_SEND_INTERVAL_SECONDS
+                clear_expired_features(data, protocol.get_current_ts())
+        if deadline_queue.deadline_expired():
+            deadline_queue.set_deadline(DATA_SEND_INTERVAL_SECONDS)
 
-        if not isinstance(msg, WorkerMessage):
-            continue
         if msg.command == WorkerCommand.Track:
             if msg.feature is not None and msg.timestamp is not None:
                 data[msg.feature].append(msg.timestamp)
@@ -195,10 +212,14 @@ def stop_worker(flush_buffers: bool):
     _queue = None
 
 
-def track(category: str, product_version: str, feature: protocol.Feature):
+def track(
+        product_name: protocol.ProductName,
+        product_version: protocol.ProductVersion,
+        feature: protocol.Feature
+):
     """
     Track feature usage. Library has to be initialized with `setup()` call.
-    :param category: product name
+    :param product_name: product name
     :param product_version: product version
     :param feature: string feature to track.
     """
@@ -208,4 +229,4 @@ def track(category: str, product_version: str, feature: protocol.Feature):
     global _queue
     if _queue is not None:
         if _queue.not_full:
-            _queue.put(WorkerMessage.make_track(feature))
+            _queue.put(WorkerMessage.make_track(product_name, product_version, feature))
