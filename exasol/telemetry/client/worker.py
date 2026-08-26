@@ -106,9 +106,61 @@ class WorkerDeadlineQueue:
         except queue.Empty:
             return None
 
-def send_features(features: protocol.Features) -> bool:
+
+class DataPool:
+    Key = tt.Tuple[protocol.ProductName, protocol.ProductVersion]
+
+    def __init__(self):
+        self._pool: tt.Dict[DataPool.Key, protocol.Features] = dict()
+
+    def is_empty(self) -> bool:
+        return bool(self._pool)
+
+    def send(self) -> bool:
+        to_clear: tt.List[DataPool.Key] = []
+        try:
+            for key, features in self._pool.items():
+                product, version = key
+                if send_features(product, version, features):
+                    to_clear.append(key)
+                else:
+                    # stop on first error
+                    break
+        finally:
+            for key in to_clear:
+                self._pool.pop(key)
+        return self.is_empty()
+
+    def clear_expired(self, now: protocol.Timestamp):
+        to_clear: tt.List[DataPool.Key] = []
+        for key, features in self._pool.items():
+            clear_expired_features(features, now)
+            if not features:
+                to_clear.append(key)
+        for key in to_clear:
+            self._pool.pop(key)
+
+    def append(
+            self,
+            product_name: protocol.ProductName,
+            product_version: protocol.ProductVersion,
+            feature: protocol.Feature,
+            timestamp: protocol.Timestamp,
+    ):
+        key = (product_name, product_version)
+        features = self._pool.get(key, collections.defaultdict(list))
+        features[feature].append(timestamp)
+
+
+def send_features(
+        product_name: protocol.ProductName,
+        product_version: protocol.ProductVersion,
+        features: protocol.Features,
+) -> bool:
     """
     Internal method to send the accumulated data to endpoint.
+    :param product_name: name of the product
+    :param product_version: version of the product
     :param features: data to be sent
     :return: True if data was sent successfully,
     False if something happened and we need to keep data for some time.
@@ -118,7 +170,7 @@ def send_features(features: protocol.Features) -> bool:
     conf = config.get()
     if conf is None:
         return True
-    message = protocol.Message.from_features(features)
+    message = protocol.Message.from_features(product_name, product_version, features)
     try:
         url = conf.endpoint
         data = json.dumps(message.to_json())
@@ -154,7 +206,7 @@ def worker_proc(msg_queue: queue.Queue):
     Worker procedure - consumes the queue, periodically sends the accumulated data.
     :param msg_queue: queue to consume
     """
-    data: protocol.Features = collections.defaultdict(list)
+    data_pool = DataPool()
     deadline_queue = WorkerDeadlineQueue(msg_queue)
     deadline_queue.set_deadline(DATA_SEND_FIRST_INTERVAL_SECONDS)
 
@@ -162,16 +214,14 @@ def worker_proc(msg_queue: queue.Queue):
         msg = deadline_queue.get_msg()
         if msg is None or msg.command == WorkerCommand.SendBuffers:
             # deadline has expired or we've asked to flush buffers
-            if send_features(data):
-                data.clear()
-            else:
-                clear_expired_features(data, protocol.get_current_ts())
+            if not data_pool.send():
+                data_pool.clear_expired(protocol.get_current_ts())
         if deadline_queue.deadline_expired():
             deadline_queue.set_deadline(DATA_SEND_INTERVAL_SECONDS)
 
         if msg.command == WorkerCommand.Track:
-            if msg.feature is not None and msg.timestamp is not None:
-                data[msg.feature].append(msg.timestamp)
+            data_pool.append(msg.product_name, msg.product_version,
+                             msg.feature, msg.timestamp)
         elif msg.command == WorkerCommand.Terminate:
             return
 
