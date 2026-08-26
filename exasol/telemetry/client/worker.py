@@ -167,7 +167,7 @@ def send_features(
     :param product_version: version of the product
     :param features: data to be sent
     :return: True if data was sent successfully,
-    False if something happened and we need to keep data for some time.
+    False if something happened, and we need to keep data for some time.
     """
     if not features:
         return True
