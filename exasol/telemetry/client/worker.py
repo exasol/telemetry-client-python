@@ -107,17 +107,18 @@ class WorkerDeadlineQueue:
             return None
 
 
-class DataPool:
-    Key = tt.Tuple[protocol.ProductName, protocol.ProductVersion]
+DataPoolKey = tt.Tuple[protocol.ProductName, protocol.ProductVersion]
 
+
+class DataPool:
     def __init__(self):
-        self._pool: tt.Dict[DataPool.Key, protocol.Features] = dict()
+        self._pool: tt.Dict[DataPoolKey, protocol.Features] = dict()
 
     def is_empty(self) -> bool:
         return not bool(self._pool)
 
     def send(self) -> bool:
-        to_clear: tt.List[DataPool.Key] = []
+        to_clear: tt.List[DataPoolKey] = []
         try:
             for key, features in self._pool.items():
                 product, version = key
@@ -132,7 +133,7 @@ class DataPool:
         return self.is_empty()
 
     def clear_expired(self, now: protocol.Timestamp):
-        to_clear: tt.List[DataPool.Key] = []
+        to_clear: tt.List[DataPoolKey] = []
         for key, features in self._pool.items():
             clear_expired_features(features, now)
             if not features:
