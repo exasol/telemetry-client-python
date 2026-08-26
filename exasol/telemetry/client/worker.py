@@ -114,7 +114,7 @@ class DataPool:
         self._pool: tt.Dict[DataPool.Key, protocol.Features] = dict()
 
     def is_empty(self) -> bool:
-        return bool(self._pool)
+        return not bool(self._pool)
 
     def send(self) -> bool:
         to_clear: tt.List[DataPool.Key] = []
@@ -148,7 +148,10 @@ class DataPool:
             timestamp: protocol.Timestamp,
     ):
         key = (product_name, product_version)
-        features = self._pool.get(key, collections.defaultdict(list))
+        features = self._pool.get(key)
+        if features is None:
+            features = collections.defaultdict(list)
+            self._pool[key] = features
         features[feature].append(timestamp)
 
 
@@ -218,7 +221,8 @@ def worker_proc(msg_queue: queue.Queue):
                 data_pool.clear_expired(protocol.get_current_ts())
         if deadline_queue.deadline_expired():
             deadline_queue.set_deadline(DATA_SEND_INTERVAL_SECONDS)
-
+        if msg is None:
+            continue
         if msg.command == WorkerCommand.Track:
             data_pool.append(msg.product_name, msg.product_version,
                              msg.feature, msg.timestamp)
@@ -262,17 +266,24 @@ def stop_worker(flush_buffers: bool):
     _queue = None
 
 
+def _do_setup():
+    from .setup import setup
+    setup()
+
+
 def track(
         product_name: protocol.ProductName,
         product_version: protocol.ProductVersion,
         feature: protocol.Feature
 ):
     """
-    Track feature usage. Library has to be initialized with `setup()` call.
+    Track feature usage.
     :param product_name: product name
     :param product_version: product version
     :param feature: string feature to track.
     """
+    if not config.was_setup():
+        _do_setup()
     if not config.was_enabled():
         return
 

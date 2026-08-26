@@ -45,7 +45,6 @@ def test_clear_expired_features():
 def test_track(post_mock: mock.MagicMock, telemetry_reset, telemetry_unset_ci, telemetry_unset_disable):
     post_mock.return_value = mock.MagicMock(status_code=200)
 
-    assert setup()
     worker.track("test", "0.1", "feature1")
     worker.track("test", "0.1", "feature2")
     shutdown(flush_buffers=True)
