@@ -84,7 +84,7 @@ class WorkerDeadlineQueue:
         self._deadline_ts = protocol.get_current_ts() + seconds
 
     def deadline_expired(self) -> bool:
-        return protocol.get_current_ts() > self._deadline_ts
+        return self._deadline_ts is None or protocol.get_current_ts() > self._deadline_ts
 
     def seconds_to_deadline(self, now: tt.Optional[protocol.Timestamp] = None) -> float:
         """
