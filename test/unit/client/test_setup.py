@@ -1,10 +1,12 @@
 import pytest
 
 from exasol.telemetry.client import config
+from exasol.telemetry.client.config import was_setup
 from exasol.telemetry.client.setup import (
     get_value,
     is_valid_endpoint_url,
-    setup
+    setup,
+    shutdown,
 )
 
 
@@ -64,13 +66,13 @@ def test_setup_explicit_disabled(telemetry_reset):
     assert config.get().endpoint.startswith("https")
 
 
-def test_setup_wrong_endpoint(telemetry_reset, telemetry_unset_ci):
+def test_setup_wrong_endpoint(telemetry_reset, telemetry_unset_ci, telemetry_unset_disable):
     assert not setup("ftp://test.com")
     assert config.was_setup()
     assert not config.was_enabled()
 
 
-def test_setup_env_disabled(monkeypatch, telemetry_reset):
+def test_setup_env_disabled(monkeypatch, telemetry_reset, telemetry_unset_ci, telemetry_unset_disable):
     monkeypatch.setenv(config.ENV_DISABLE, "1")
     assert not setup("http://endpoint")
     assert config.was_setup()
@@ -105,3 +107,8 @@ def test_setup_ci_true_explicit(monkeypatch, telemetry_reset, telemetry_unset_di
 def test_setup_ci_false(monkeypatch, telemetry_reset, telemetry_unset_disable):
     monkeypatch.setenv(config.ENV_CI, "t")
     assert setup()
+
+
+def test_shutdown_not_setup(telemetry_reset):
+    shutdown()
+    assert not was_setup()

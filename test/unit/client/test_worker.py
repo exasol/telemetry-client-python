@@ -54,6 +54,7 @@ def test_track(post_mock: mock.MagicMock, telemetry_reset, telemetry_unset_ci, t
 def test_deadline_queue_deadline():
     q = worker.WorkerDeadlineQueue(queue.Queue())
     assert q.deadline_expired()
+    assert q.seconds_to_deadline() == 0.0
     q.set_deadline(0.2)
     assert not q.deadline_expired()
     assert q.seconds_to_deadline() > 0.0
