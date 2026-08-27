@@ -14,7 +14,7 @@ def telemetry_reset():
     config.store(None)
 
 
-@pytest.fixture()
+@pytest.fixture
 def telemetry_unset_ci(monkeypatch):
     """
     Temporary remove CI env variable if present
@@ -22,7 +22,7 @@ def telemetry_unset_ci(monkeypatch):
     monkeypatch.delenv(config.ENV_CI, raising=False)
 
 
-@pytest.fixture()
+@pytest.fixture
 def telemetry_unset_disable(monkeypatch):
     """
     Temporary remove EXASOL_TELEMETRY_DISABLE env variable if present
