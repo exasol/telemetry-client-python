@@ -189,7 +189,7 @@ def send_features(
 
 
 def clear_expired_features(features: protocol.Features, now: protocol.Timestamp):
-    """
+    """ 
     Discard expired features from buffers.
     :param features: dict with features and timestamps.
     :param now: current timestamp
