@@ -49,10 +49,10 @@ class WorkerMessage:
 
     @classmethod
     def make_track(
-            cls,
-            product_name: protocol.ProductName,
-            product_version: protocol.ProductVersion,
-            feature: protocol.Feature
+        cls,
+        product_name: protocol.ProductName,
+        product_version: protocol.ProductVersion,
+        feature: protocol.Feature,
     ) -> "WorkerMessage":
         return WorkerMessage(
             command=WorkerCommand.Track,
@@ -76,6 +76,7 @@ class WorkerDeadlineQueue:
     Queue with deadline - moment in the future when we
     want to stop waiting for a message to arrive.
     """
+
     def __init__(self, msg_queue: queue.Queue):
         self._queue = msg_queue
         self._deadline_ts: tt.Optional[protocol.Timestamp] = None
@@ -84,7 +85,9 @@ class WorkerDeadlineQueue:
         self._deadline_ts = protocol.get_current_ts() + seconds
 
     def deadline_expired(self) -> bool:
-        return self._deadline_ts is None or protocol.get_current_ts() > self._deadline_ts
+        return (
+            self._deadline_ts is None or protocol.get_current_ts() > self._deadline_ts
+        )
 
     def seconds_to_deadline(self, now: tt.Optional[protocol.Timestamp] = None) -> float:
         """
@@ -142,11 +145,11 @@ class DataPool:
             self._pool.pop(key)
 
     def append(
-            self,
-            product_name: protocol.ProductName,
-            product_version: protocol.ProductVersion,
-            feature: protocol.Feature,
-            timestamp: protocol.Timestamp,
+        self,
+        product_name: protocol.ProductName,
+        product_version: protocol.ProductVersion,
+        feature: protocol.Feature,
+        timestamp: protocol.Timestamp,
     ):
         key = (product_name, product_version)
         features = self._pool.get(key)
@@ -157,9 +160,9 @@ class DataPool:
 
 
 def send_features(
-        product_name: protocol.ProductName,
-        product_version: protocol.ProductVersion,
-        features: protocol.Features,
+    product_name: protocol.ProductName,
+    product_version: protocol.ProductVersion,
+    features: protocol.Features,
 ) -> bool:
     """
     Internal method to send the accumulated data to endpoint.
@@ -189,7 +192,7 @@ def send_features(
 
 
 def clear_expired_features(features: protocol.Features, now: protocol.Timestamp):
-    """ 
+    """
     Discard expired features from buffers.
     :param features: dict with features and timestamps.
     :param now: current timestamp
@@ -225,8 +228,9 @@ def worker_proc(msg_queue: queue.Queue):
         if msg is None:
             continue
         if msg.command == WorkerCommand.Track:
-            data_pool.append(msg.product_name, msg.product_version,
-                             msg.feature, msg.timestamp)
+            data_pool.append(
+                msg.product_name, msg.product_version, msg.feature, msg.timestamp
+            )
         elif msg.command == WorkerCommand.Terminate:
             return
 
@@ -269,13 +273,14 @@ def stop_worker(flush_buffers: bool):
 
 def _do_setup():
     from .setup import setup
+
     setup()
 
 
 def track(
-        product_name: protocol.ProductName,
-        product_version: protocol.ProductVersion,
-        feature: protocol.Feature
+    product_name: protocol.ProductName,
+    product_version: protocol.ProductVersion,
+    feature: protocol.Feature,
 ):
     """
     Track feature usage.

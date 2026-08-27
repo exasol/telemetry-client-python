@@ -3,12 +3,12 @@ import time
 from unittest import mock
 
 from exasol.telemetry.client import *
-from exasol.telemetry.client.setup import setup
 from exasol.telemetry.client import (
     config,
     protocol,
     worker,
 )
+from exasol.telemetry.client.setup import setup
 
 
 def test_stop_worker_doing_nothing_without_worker():
@@ -42,7 +42,12 @@ def test_clear_expired_features():
 
 
 @mock.patch("requests.post")
-def test_track(post_mock: mock.MagicMock, telemetry_reset, telemetry_unset_ci, telemetry_unset_disable):
+def test_track(
+    post_mock: mock.MagicMock,
+    telemetry_reset,
+    telemetry_unset_ci,
+    telemetry_unset_disable,
+):
     post_mock.return_value = mock.MagicMock(status_code=200)
 
     worker.track("test", "0.1", "feature1")
@@ -79,7 +84,10 @@ def test_send_features_wrong_endpoint(telemetry_reset, caplog):
 # Make sure that first buffer is sent quickly after the initialization
 @mock.patch("requests.post", return_value=mock.MagicMock(status_code=200))
 def test_worker_proc_sent_quick(
-    mock_post: mock.MagicMock, telemetry_reset, telemetry_unset_ci, telemetry_unset_disable
+    mock_post: mock.MagicMock,
+    telemetry_reset,
+    telemetry_unset_ci,
+    telemetry_unset_disable,
 ):
     track("product", "ver", "test")
     time.sleep(worker.DATA_SEND_FIRST_INTERVAL_SECONDS * 2)
@@ -90,7 +98,10 @@ def test_worker_proc_sent_quick(
 # Make sure that features are not sent if not enabled
 @mock.patch("requests.post")
 def test_worker_proc_not_sent_when_disabled(
-    mock_post: mock.MagicMock, telemetry_reset, telemetry_unset_ci, telemetry_unset_disable
+    mock_post: mock.MagicMock,
+    telemetry_reset,
+    telemetry_unset_ci,
+    telemetry_unset_disable,
 ):
     assert not setup(disable=True)
     assert config.was_setup()

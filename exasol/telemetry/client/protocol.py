@@ -53,7 +53,12 @@ class Message:
         }
 
     @classmethod
-    def from_features(cls, product_name: ProductName, product_version: ProductVersion, features: Features) -> "Message":
+    def from_features(
+        cls,
+        product_name: ProductName,
+        product_version: ProductVersion,
+        features: Features,
+    ) -> "Message":
         """
         Construct the message object from collected features.
         We're not deep copy of features, just store the reference of it.

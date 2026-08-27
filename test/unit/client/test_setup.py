@@ -10,11 +10,6 @@ from exasol.telemetry.client.setup import (
 )
 
 
-# def test_error_when_not_initialized():
-#     with pytest.raises(TelemetryError, match="not initialized"):
-#         shutdown()
-
-
 @pytest.mark.parametrize(
     "url, expected",
     [
@@ -66,13 +61,17 @@ def test_setup_explicit_disabled(telemetry_reset):
     assert config.get().endpoint.startswith("https")
 
 
-def test_setup_wrong_endpoint(telemetry_reset, telemetry_unset_ci, telemetry_unset_disable):
+def test_setup_wrong_endpoint(
+    telemetry_reset, telemetry_unset_ci, telemetry_unset_disable
+):
     assert not setup("ftp://test.com")
     assert config.was_setup()
     assert not config.was_enabled()
 
 
-def test_setup_env_disabled(monkeypatch, telemetry_reset, telemetry_unset_ci, telemetry_unset_disable):
+def test_setup_env_disabled(
+    monkeypatch, telemetry_reset, telemetry_unset_ci, telemetry_unset_disable
+):
     monkeypatch.setenv(config.ENV_DISABLE, "1")
     assert not setup("http://endpoint")
     assert config.was_setup()
@@ -81,7 +80,9 @@ def test_setup_env_disabled(monkeypatch, telemetry_reset, telemetry_unset_ci, te
     assert not setup(disable=False)
 
 
-def test_setup_env_enabled(monkeypatch, telemetry_reset, telemetry_unset_ci, telemetry_unset_disable):
+def test_setup_env_enabled(
+    monkeypatch, telemetry_reset, telemetry_unset_ci, telemetry_unset_disable
+):
     monkeypatch.setenv(config.ENV_ENDPOINT, "http://test")
     assert setup()
     assert config.was_enabled()
