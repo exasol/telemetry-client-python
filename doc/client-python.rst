@@ -10,7 +10,7 @@ public repo yet) ``pip install exasol-telemetry-client``
 Usage
 -----
 
-Once installed, package ``exasel.telemetry.client`` provides three
+Once installed, package ``exasol.telemetry.client`` provides three
 methods:
 
 - ``track(product_name, product_version, feature_name)``: tracks feature as used (string)
