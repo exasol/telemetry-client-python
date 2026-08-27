@@ -1,16 +1,13 @@
 import pytest
 
-from exasol.telemetry.client import *
 from exasol.telemetry.client import config
+from exasol.telemetry.client.config import was_setup
 from exasol.telemetry.client.setup import (
     get_value,
     is_valid_endpoint_url,
+    setup,
+    shutdown,
 )
-
-
-def test_error_when_not_initialized():
-    with pytest.raises(TelemetryError, match="not initialized"):
-        shutdown()
 
 
 @pytest.mark.parametrize(
@@ -64,13 +61,17 @@ def test_setup_explicit_disabled(telemetry_reset):
     assert config.get().endpoint.startswith("https")
 
 
-def test_setup_wrong_endpoint(telemetry_reset, telemetry_unset_ci):
-    with pytest.raises(TelemetryError, match="Endpoint is invalid"):
-        setup("ftp://test.com")
-    assert not config.was_setup()
+def test_setup_wrong_endpoint(
+    telemetry_reset, telemetry_unset_ci, telemetry_unset_disable
+):
+    assert not setup("ftp://test.com")
+    assert config.was_setup()
+    assert not config.was_enabled()
 
 
-def test_setup_env_disabled(monkeypatch, telemetry_reset):
+def test_setup_env_disabled(
+    monkeypatch, telemetry_reset, telemetry_unset_ci, telemetry_unset_disable
+):
     monkeypatch.setenv(config.ENV_DISABLE, "1")
     assert not setup("http://endpoint")
     assert config.was_setup()
@@ -79,14 +80,16 @@ def test_setup_env_disabled(monkeypatch, telemetry_reset):
     assert not setup(disable=False)
 
 
-def test_setup_env_enabled(monkeypatch, telemetry_reset, telemetry_unset_ci):
+def test_setup_env_enabled(
+    monkeypatch, telemetry_reset, telemetry_unset_ci, telemetry_unset_disable
+):
     monkeypatch.setenv(config.ENV_ENDPOINT, "http://test")
     assert setup()
     assert config.was_enabled()
     assert config.get().endpoint == "http://test"
 
 
-def test_setup_defaults(telemetry_reset, telemetry_unset_ci):
+def test_setup_defaults(telemetry_reset, telemetry_unset_ci, telemetry_unset_disable):
     assert setup() == (not config.DEFAULT_DISABLED)
     assert config.get().endpoint == config.DEFAULT_ENDPOINT
 
@@ -97,11 +100,16 @@ def test_setup_ci_true(monkeypatch, telemetry_reset):
     assert not config.was_enabled()
 
 
-def test_setup_ci_true_explicit(monkeypatch, telemetry_reset):
+def test_setup_ci_true_explicit(monkeypatch, telemetry_reset, telemetry_unset_disable):
     monkeypatch.setenv(config.ENV_CI, "true")
     assert setup(disable=False)
 
 
-def test_setup_ci_false(monkeypatch, telemetry_reset):
+def test_setup_ci_false(monkeypatch, telemetry_reset, telemetry_unset_disable):
     monkeypatch.setenv(config.ENV_CI, "t")
     assert setup()
+
+
+def test_shutdown_not_setup(telemetry_reset):
+    shutdown()
+    assert not was_setup()
