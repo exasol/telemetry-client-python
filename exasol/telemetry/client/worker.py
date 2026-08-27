@@ -146,11 +146,19 @@ class DataPool:
 
     def append(
         self,
-        product_name: protocol.ProductName,
-        product_version: protocol.ProductVersion,
-        feature: protocol.Feature,
-        timestamp: protocol.Timestamp,
+        product_name: tt.Optional[protocol.ProductName],
+        product_version: tt.Optional[protocol.ProductVersion],
+        feature: tt.Optional[protocol.Feature],
+        timestamp: tt.Optional[protocol.Timestamp],
     ):
+        # should never happen, but to make linter happy :shrug
+        if (
+            product_name is None
+            or product_version is None
+            or feature is None
+            or timestamp is None
+        ):
+            return
         key = (product_name, product_version)
         features = self._pool.get(key)
         if features is None:
