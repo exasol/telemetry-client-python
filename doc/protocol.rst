@@ -32,8 +32,7 @@ side and filter out outliers.
 Version 0.2
 -----------
 
-This is an extension of version 0.1, sample data is below.
-.. code:: json
+This is an extension of version 0.1, sample data is below ::
 
     {
         "version": "0.2",
