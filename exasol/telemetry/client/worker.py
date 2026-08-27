@@ -115,7 +115,7 @@ DataPoolKey = tt.Tuple[protocol.ProductName, protocol.ProductVersion]
 
 class DataPool:
     def __init__(self):
-        self._pool: tt.Dict[DataPoolKey, protocol.Features] = dict()
+        self._pool: tt.Dict[DataPoolKey, protocol.Features] = {}
 
     def is_empty(self) -> bool:
         return not bool(self._pool)
