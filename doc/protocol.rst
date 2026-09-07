@@ -3,7 +3,7 @@ Telemetry Protocol Specification
 
 Exasol telemetry uses simplistic protocol sending events happened in the the software.
 Every event has a timestamp attached to be used for server-side analytics.
-All the data one the server are immediately aggregated and anonymized and no personal information
+All the data on the server is immediately aggregated and anonymized and no personal information
 is transferred or stored.
 
 The data is transferred in json format and at the moment there are two versions of the protocol.
