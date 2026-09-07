@@ -36,7 +36,7 @@ This is an extension of version 0.1, sample data is below ::
 
     {
         "version": "0.2",
-        "category": "mcp-server",
+        "category": "EMCP",
         "productVersion": "0.22",
         "timestamp": 1787036195,
         "features": {
