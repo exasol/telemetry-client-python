@@ -4,8 +4,8 @@ from urllib.parse import urlparse
 
 from exasol.telemetry.client import (
     config,
-    worker,
     verbose,
+    worker,
 )
 
 

@@ -1,6 +1,9 @@
 import pytest
 
-from exasol.telemetry.client import config, verbose
+from exasol.telemetry.client import (
+    config,
+    verbose,
+)
 from exasol.telemetry.client.setup import shutdown
 
 

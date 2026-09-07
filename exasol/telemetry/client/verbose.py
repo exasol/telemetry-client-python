@@ -1,5 +1,5 @@
-import typing as tt
 import logging
+import typing as tt
 
 LOGGER = "exasol.telemetry.client"
 LEVEL = logging.DEBUG

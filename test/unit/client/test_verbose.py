@@ -1,5 +1,6 @@
-from exasol.telemetry.client import verbose
 import logging
+
+from exasol.telemetry.client import verbose
 
 
 def test_no_show_unconfigured(caplog, telemetry_reset):

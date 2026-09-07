@@ -1,13 +1,16 @@
 import pytest
 
-from exasol.telemetry.client import config, verbose
+from exasol.telemetry.client import (
+    config,
+    verbose,
+)
 from exasol.telemetry.client.config import was_setup
 from exasol.telemetry.client.setup import (
     get_value,
     is_valid_endpoint_url,
     setup,
-    shutdown,
     setup_verbose_if_needed,
+    shutdown,
 )
 
 

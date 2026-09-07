@@ -6,8 +6,8 @@ from exasol.telemetry.client import *
 from exasol.telemetry.client import (
     config,
     protocol,
-    worker,
     verbose,
+    worker,
 )
 from exasol.telemetry.client.setup import setup
 
