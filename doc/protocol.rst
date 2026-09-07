@@ -16,7 +16,7 @@ Version 0.1
         "version": "0.1",
         "timestamp": 1787036195,
         "features": {
-            "mcp-server.started": [1787036195]
+            "EMCP.started": [1787036195]
         }
     }
 
