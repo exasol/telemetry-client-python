@@ -1,6 +1,6 @@
 import pytest
 
-from exasol.telemetry.client import config
+from exasol.telemetry.client import config, verbose
 from exasol.telemetry.client.setup import shutdown
 
 
@@ -28,3 +28,11 @@ def telemetry_unset_disable(monkeypatch):
     Temporary remove EXASOL_TELEMETRY_DISABLE env variable if present
     """
     monkeypatch.delenv(config.ENV_DISABLE, raising=False)
+
+
+@pytest.fixture
+def telemetry_verbose(monkeypatch):
+    monkeypatch.setenv(config.ENV_VERBOSE, "t")
+    yield
+    verbose.logger = None
+    monkeypatch.delenv(config.ENV_VERBOSE)

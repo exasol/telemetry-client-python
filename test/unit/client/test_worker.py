@@ -7,6 +7,7 @@ from exasol.telemetry.client import (
     config,
     protocol,
     worker,
+    verbose,
 )
 from exasol.telemetry.client.setup import setup
 
@@ -74,10 +75,11 @@ def test_send_features_not_conf():
 
 
 def test_send_features_wrong_endpoint(telemetry_reset, caplog):
-    caplog.set_level("DEBUG")
+    verbose.setup_logging()
+    caplog.set_level(verbose.LEVEL)
     assert setup(endpoint="http://non-existent-domain.weird", disable=False)
     assert not worker.send_features("prod", "ver", {"f": [1]})
-    assert "Features send error" in caplog.text
+    assert "Send exception" in caplog.text
     assert "Name or service not known" in caplog.text
 
 

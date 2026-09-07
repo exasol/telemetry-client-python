@@ -1,12 +1,13 @@
 import pytest
 
-from exasol.telemetry.client import config
+from exasol.telemetry.client import config, verbose
 from exasol.telemetry.client.config import was_setup
 from exasol.telemetry.client.setup import (
     get_value,
     is_valid_endpoint_url,
     setup,
     shutdown,
+    setup_verbose_if_needed,
 )
 
 
@@ -113,3 +114,9 @@ def test_setup_ci_false(monkeypatch, telemetry_reset, telemetry_unset_disable):
 def test_shutdown_not_setup(telemetry_reset):
     shutdown()
     assert not was_setup()
+
+
+def test_verbose_mode(monkeypatch, telemetry_reset, telemetry_verbose):
+    assert verbose.logger is None
+    setup_verbose_if_needed()
+    assert verbose.logger is not None

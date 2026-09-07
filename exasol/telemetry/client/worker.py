@@ -2,7 +2,6 @@ import collections
 import dataclasses
 import enum
 import json
-import logging
 import queue
 import threading
 import typing as tt
@@ -12,6 +11,7 @@ import requests
 from exasol.telemetry.client import (
     config,
     protocol,
+    verbose,
 )
 
 MAX_QUEUE_CAPACITY = 10
@@ -28,7 +28,6 @@ DATA_SEND_INTERVAL_SECONDS = 5 * 60
 # for how long we keep features in buffers before removing them
 MAX_DATA_KEEP_SECONDS = 60 * 60
 
-log = logging.getLogger("worker")
 _worker: tt.Optional[threading.Thread] = None
 _queue: tt.Optional[queue.Queue] = None
 
@@ -191,11 +190,11 @@ def send_features(
         data = json.dumps(message.to_json())
         res = requests.post(url, data, timeout=SEND_TIMEOUT_SECONDS)
         if res.status_code != 200:
-            log.debug("Feature send error: %s", str(res))
+            verbose.log("Features send error: %s", str(res))
             return False
         return True
     except requests.exceptions.RequestException as e:
-        log.debug("Features send error: %s", str(e))
+        verbose.log("Send exception: %s", str(e))
     return False
 
 
@@ -227,6 +226,7 @@ def worker_proc(msg_queue: queue.Queue):
 
     while True:
         msg = deadline_queue.get_msg()
+        verbose.log("Message: %s", str(msg))
         if msg is None or msg.command == WorkerCommand.SendBuffers:
             # deadline has expired or we've asked to flush buffers
             if not data_pool.send():

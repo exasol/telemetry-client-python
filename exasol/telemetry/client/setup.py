@@ -5,6 +5,7 @@ from urllib.parse import urlparse
 from exasol.telemetry.client import (
     config,
     worker,
+    verbose,
 )
 
 
@@ -39,6 +40,16 @@ def is_valid_endpoint_url(url: str) -> bool:
     """
     res = urlparse(url)
     return res.scheme in ("http", "https") and len(res.netloc) > 0
+
+
+def setup_verbose_if_needed():
+    """
+    Function enables verbose mode for telemetry prefix if env variable is set.
+    """
+    # if env variable is not set, do nothing
+    if get_value(None, config.ENV_VERBOSE, None) is None:
+        return
+    verbose.setup_logging()
 
 
 def setup(endpoint: tt.Optional[str] = None, disable: tt.Optional[bool] = None) -> bool:
@@ -86,7 +97,10 @@ def setup(endpoint: tt.Optional[str] = None, disable: tt.Optional[bool] = None) 
 
     conf = config.Config(endpoint=val_endpoint, enabled=enabled)
     config.store(conf)
-    worker.start_worker()
+    if enabled:
+        setup_verbose_if_needed()
+        worker.start_worker()
+    verbose.log("Setup is done, enabled=%s", conf.enabled)
     return conf.enabled
 
 
@@ -99,5 +113,6 @@ def shutdown(flush_buffers: bool = True):
     """
     if not config.was_setup():
         return
+    verbose.log("Shutdown")
     worker.stop_worker(flush_buffers)
     config.disable()
