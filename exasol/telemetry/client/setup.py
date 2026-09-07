@@ -4,9 +4,9 @@ from urllib.parse import urlparse
 
 from exasol.telemetry.client import (
     config,
+    verbose,
     worker,
 )
-from exasol.telemetry.client.errors import TelemetryError
 
 
 def get_value(
@@ -42,10 +42,19 @@ def is_valid_endpoint_url(url: str) -> bool:
     return res.scheme in ("http", "https") and len(res.netloc) > 0
 
 
+def setup_verbose_if_needed():
+    """
+    Function enables verbose mode for telemetry prefix if env variable is set.
+    """
+    # if env variable is not set, do nothing
+    if get_value(None, config.ENV_VERBOSE, None) is None:
+        return
+    verbose.setup_logging()
+
+
 def setup(endpoint: tt.Optional[str] = None, disable: tt.Optional[bool] = None) -> bool:
     """
-    Telemetry client setup function. Has to be called before any other
-    calls to the client.
+    Telemetry client setup function.
 
     Explicitly given arguments have the highest priority.
     If they are not given, we check the environment variables (EXASOL_TELEMETRY_XXX),
@@ -58,7 +67,6 @@ def setup(endpoint: tt.Optional[str] = None, disable: tt.Optional[bool] = None) 
     :param disable: If True, disable telemetry communication and
     data accumulation.
 
-    :raises TelemetryError: if error has happened
     :returns True if telemetry is active according to configuration,
     False if it was disabled
     """
@@ -85,11 +93,14 @@ def setup(endpoint: tt.Optional[str] = None, disable: tt.Optional[bool] = None) 
     enabled = not val_disabled
 
     if enabled and not is_valid_endpoint_url(val_endpoint):
-        raise TelemetryError("Endpoint is invalid: " + val_endpoint)
+        enabled = False
 
     conf = config.Config(endpoint=val_endpoint, enabled=enabled)
     config.store(conf)
-    worker.start_worker()
+    if enabled:
+        setup_verbose_if_needed()
+        worker.start_worker()
+    verbose.log("Setup is done, enabled=%s", conf.enabled)
     return conf.enabled
 
 
@@ -101,6 +112,7 @@ def shutdown(flush_buffers: bool = True):
     so some values might be lost.
     """
     if not config.was_setup():
-        raise TelemetryError("Telemetry was not initialized")
+        return
+    verbose.log("Shutdown")
     worker.stop_worker(flush_buffers)
-    config.store(None)
+    config.disable()
