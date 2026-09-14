@@ -115,4 +115,11 @@ def shutdown(flush_buffers: bool = True):
         return
     verbose.log("Shutdown")
     worker.stop_worker(flush_buffers)
-    config.disable()
+
+
+def disable():
+    """
+    Shuts down workers and disables the telemetry globally.
+    """
+    config.disable_config()
+    worker.stop_worker(flush_buffers=False)

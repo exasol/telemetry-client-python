@@ -53,7 +53,7 @@ def was_enabled() -> bool:
     return conf is not None and conf.enabled
 
 
-def disable():
+def disable_config():
     """
     Call disables telemetry entirely for all subsequent calls.
     """
