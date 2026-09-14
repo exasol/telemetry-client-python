@@ -7,7 +7,10 @@ Public API is three methods:
 - shutdown: cleans up the resources and sends the data still in buffers
 """
 
-from exasol.telemetry.client.setup import disable, shutdown
+from exasol.telemetry.client.setup import (
+    disable,
+    shutdown,
+)
 from exasol.telemetry.client.worker import track
 
 __all__ = ["track", "disable", "shutdown"]
