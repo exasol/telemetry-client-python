@@ -30,6 +30,7 @@ MAX_DATA_KEEP_SECONDS = 60 * 60
 
 _worker: tt.Optional[threading.Thread] = None
 _queue: tt.Optional[queue.Queue] = None
+_setup_lock: threading.Lock = threading.Lock()
 
 
 class WorkerCommand(enum.Enum):
@@ -282,7 +283,10 @@ def stop_worker(flush_buffers: bool):
 def _do_setup():
     from .setup import setup
 
-    setup()
+    global _setup_lock
+
+    with _setup_lock:
+        setup()
 
 
 def track(
