@@ -30,6 +30,7 @@ Documentation of  telemetry
 
    user_guide
    client-python
+   protocol
    developer_guide
    api
    faq
