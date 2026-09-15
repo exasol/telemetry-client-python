@@ -36,12 +36,10 @@ Environment variables
 ---------------------
 
 To change the telemetry configuration, you can set the following
-environment variables. Those values also could be changed via
-``setup()`` arguments.
+environment variables.
 
 -  ``EXASOL_TELEMETRY_DISABLE`` - any value disables the telemetry data
    collection and sending
 -  ``EXASOL_TELEMETRY_ENDPOINT`` - redefines telemetry endpoint url.
 -  ``EXASOL_TELEMETRY_VERBOSE`` -- enables logging messages from the library. Could be used to make sure integration was done properly.
-
-In addition, if environment variable ``CI=true`` (which is the case during Github CI workflows run).
+-  ``CI=true`` -- disables telemetry to prevent tracking during CI.
