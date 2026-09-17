@@ -1,8 +1,8 @@
 import pytest
 
 from exasol.telemetry.client import (
-    TelemetryError,
     config,
+    verbose,
 )
 from exasol.telemetry.client.setup import shutdown
 
@@ -10,19 +10,32 @@ from exasol.telemetry.client.setup import shutdown
 @pytest.fixture
 def telemetry_reset():
     """
-    Call `shutdown()` after the test.
+    Resets the telemetry into initial state
     """
     yield
-    try:
-        shutdown()
-    except TelemetryError:
-        pass
+    shutdown()
+    config.store(None)
 
 
-@pytest.fixture()
+@pytest.fixture
 def telemetry_unset_ci(monkeypatch):
     """
     Temporary remove CI env variable if present
     """
     monkeypatch.delenv(config.ENV_CI, raising=False)
+
+
+@pytest.fixture
+def telemetry_unset_disable(monkeypatch):
+    """
+    Temporary remove EXASOL_TELEMETRY_DISABLE env variable if present
+    """
+    monkeypatch.delenv(config.ENV_DISABLE, raising=False)
+
+
+@pytest.fixture
+def telemetry_verbose(monkeypatch):
+    monkeypatch.setenv(config.ENV_VERBOSE, "t")
     yield
+    verbose.logger = None
+    monkeypatch.delenv(config.ENV_VERBOSE)
