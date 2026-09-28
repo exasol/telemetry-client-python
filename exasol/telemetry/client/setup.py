@@ -1,3 +1,4 @@
+import atexit
 import os
 import typing as tt
 from urllib.parse import urlparse
@@ -52,6 +53,14 @@ def setup_verbose_if_needed():
     verbose.setup_logging()
 
 
+def setup_exit_handlers():
+    """
+    Trigger shutdown on exit of application.
+    Function have to be called only once - during the setup.
+    """
+    atexit.register(shutdown)
+
+
 def setup(endpoint: tt.Optional[str] = None, disable: tt.Optional[bool] = None) -> bool:
     """
     Telemetry client setup function.
@@ -99,6 +108,7 @@ def setup(endpoint: tt.Optional[str] = None, disable: tt.Optional[bool] = None) 
     config.store(conf)
     if enabled:
         setup_verbose_if_needed()
+        setup_exit_handlers()
         worker.start_worker()
     verbose.log("Setup is done, enabled=%s", conf.enabled)
     return conf.enabled

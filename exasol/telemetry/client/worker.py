@@ -257,7 +257,7 @@ def start_worker() -> bool:
     if not config.was_enabled():
         return False
     _queue = queue.Queue(maxsize=MAX_QUEUE_CAPACITY)
-    _worker = threading.Thread(target=worker_proc, args=(_queue,))
+    _worker = threading.Thread(target=worker_proc, args=(_queue,), daemon=True)
     _worker.start()
     return True
 
