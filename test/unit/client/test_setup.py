@@ -80,8 +80,8 @@ def test_setup_env_disabled(
     assert not setup("http://endpoint")
     assert config.was_setup()
     assert not config.was_enabled()
-    # double-call to setup skips reconfiguration and returns the enable status
-    assert not setup(disable=False)
+    # double-call to setup skips reconfiguration if disable is the same
+    assert not setup(disable=True)
 
 
 def test_setup_env_enabled(

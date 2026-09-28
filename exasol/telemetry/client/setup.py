@@ -80,7 +80,9 @@ def setup(endpoint: tt.Optional[str] = None, disable: tt.Optional[bool] = None) 
     False if it was disabled
     """
     if config.was_setup():
-        return config.was_enabled()
+        if disable is None or disable != config.was_enabled():
+            return config.was_enabled()
+        shutdown()
     val_endpoint = get_value(endpoint, config.ENV_ENDPOINT, config.DEFAULT_ENDPOINT)
 
     # Checking the presence of CI=true env variable
