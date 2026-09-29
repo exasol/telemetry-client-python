@@ -82,6 +82,7 @@ def test_setup_env_disabled(
     assert not config.was_enabled()
     # double-call to setup skips reconfiguration if disable is the same
     assert not setup(disable=True)
+    assert setup(disable=False)
 
 
 def test_setup_env_enabled(
