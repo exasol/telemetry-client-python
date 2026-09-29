@@ -19,6 +19,9 @@ MAX_QUEUE_CAPACITY = 10
 # requests' timeout value
 SEND_TIMEOUT_SECONDS = 30
 
+# how long to wait before thread exits
+THREAD_EXIT_TIMEOUT_SECONDS = 1
+
 # how long in seconds to wait before the first batch send
 DATA_SEND_FIRST_INTERVAL_SECONDS = 0.5
 
@@ -275,7 +278,7 @@ def stop_worker(flush_buffers: bool):
     if flush_buffers:
         _queue.put(WorkerMessage.make_send_buffers())
     _queue.put(WorkerMessage.make_terminate())
-    _worker.join()
+    _worker.join(timeout=THREAD_EXIT_TIMEOUT_SECONDS)
     _worker = None
     _queue = None
 

@@ -2,8 +2,9 @@
 
 ## Summary
 
-Fix of threading block at the process exit.
+Fix of threading block at the process exit. Fixes `setup()` logic of reconfiguration (semi-private API).
 
 ## Bugs
 
 - #10: Threading blocks at python exit
+- Setup logic was wrong in one of tests.
