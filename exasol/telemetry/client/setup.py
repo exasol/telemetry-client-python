@@ -61,6 +61,13 @@ def setup_exit_handlers():
     atexit.register(shutdown)
 
 
+def drop_exit_handlers():
+    """
+    Removes previously configured exit handlers
+    """
+    atexit.unregister(shutdown)
+
+
 def setup(endpoint: tt.Optional[str] = None, disable: tt.Optional[bool] = None) -> bool:
     """
     Telemetry client setup function.
@@ -127,6 +134,7 @@ def shutdown(flush_buffers: bool = True):
         return
     verbose.log("Shutdown")
     worker.stop_worker(flush_buffers)
+    drop_exit_handlers()
 
 
 def disable():
