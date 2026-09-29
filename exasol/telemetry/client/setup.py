@@ -70,13 +70,15 @@ def drop_exit_handlers():
 
 def setup(endpoint: tt.Optional[str] = None, disable: tt.Optional[bool] = None) -> bool:
     """
-    Telemetry client setup function.
+    Telemetry client setup function (should not be called from a client code).
 
     Explicitly given arguments have the highest priority.
     If they are not given, we check the environment variables (EXASOL_TELEMETRY_XXX),
     if no environment value, we use defaults (DEFAULT_XXX).
 
-    If setup() was called before, we return the enabled status and do not reconfigure.
+    If setup() was called before, we reconfigure only when previous disable
+    option was different than a new one. On reconfiguration, we flush the buffers (if any).
+    In all other cases we return the enabled status without reconfiguration.
 
     :param endpoint: Telemetry endpoint to send data. If not given,
     default endpoint is used.

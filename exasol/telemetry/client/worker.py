@@ -310,5 +310,8 @@ def track(
 
     global _queue
     if _queue is not None:
-        if _queue.not_full:
-            _queue.put(WorkerMessage.make_track(product_name, product_version, feature))
+        try:
+            msg = WorkerMessage.make_track(product_name, product_version, feature)
+            _queue.put_nowait(msg)
+        except queue.Full:
+            pass
