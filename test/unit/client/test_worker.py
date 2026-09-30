@@ -2,8 +2,6 @@ import queue
 import time
 from unittest import mock
 
-from more_itertools.more import side_effect
-
 from exasol.telemetry.client import *
 from exasol.telemetry.client import (
     config,
@@ -136,10 +134,10 @@ def test_worker_proc_not_sent_when_disabled(
 
 @mock.patch("requests.post", side_effect=lambda *w, **kw: time.sleep(1000))
 def test_shutdown_exits_on_blocked_worker(
-        mock_post: mock.MagicMock,
-        telemetry_reset,
-        telemetry_unset_ci,
-        telemetry_unset_disable,
+    mock_post: mock.MagicMock,
+    telemetry_reset,
+    telemetry_unset_ci,
+    telemetry_unset_disable,
 ):
     assert setup(disable=False)
     track("test", "0.1", "test-feature")
