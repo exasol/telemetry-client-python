@@ -268,6 +268,8 @@ def start_worker() -> bool:
 def stop_worker(flush_buffers: bool):
     """
     Gracefully stops the worker process.
+
+    In case of connectivity issues, flush of buffers might not happen.
     :param flush_buffers: if True, we'll try to send the buffers (if any),
     otherwise, we'll just shut down the worker process.
     """
@@ -277,8 +279,15 @@ def stop_worker(flush_buffers: bool):
         return
     if flush_buffers:
         _queue.put(WorkerMessage.make_send_buffers())
-    _queue.put(WorkerMessage.make_terminate())
-    _worker.join(timeout=THREAD_EXIT_TIMEOUT_SECONDS)
+    try:
+        _queue.put_nowait(WorkerMessage.make_terminate())
+        _worker.join(timeout=THREAD_EXIT_TIMEOUT_SECONDS)
+    except queue.Full:
+        # rare situation - if the thread is blocked on send and
+        # we have lots of messages in the queue, we can have no capacity
+        # in the queue. In such cases, we just don't stop the thread,
+        # which is fine as thread is daemon.
+        pass
     _worker = None
     _queue = None
 
