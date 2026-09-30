@@ -56,6 +56,7 @@ def was_enabled() -> bool:
 def disable_config():
     """
     Call disables telemetry entirely for all subsequent calls.
+    Telemetry still might be re-enabled by call to setup() with the opposite disable flag.
     """
     conf = Config(enabled=False, endpoint=DEFAULT_ENDPOINT)
     store(conf)
