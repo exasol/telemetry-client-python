@@ -277,9 +277,9 @@ def stop_worker(flush_buffers: bool):
 
     if _worker is None or _queue is None:
         return
-    if flush_buffers:
-        _queue.put(WorkerMessage.make_send_buffers())
     try:
+        if flush_buffers:
+            _queue.put_nowait(WorkerMessage.make_send_buffers())
         _queue.put_nowait(WorkerMessage.make_terminate())
         _worker.join(timeout=THREAD_EXIT_TIMEOUT_SECONDS)
     except queue.Full:
