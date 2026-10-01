@@ -1,3 +1,4 @@
+import atexit
 import os
 import typing as tt
 from urllib.parse import urlparse
@@ -52,15 +53,32 @@ def setup_verbose_if_needed():
     verbose.setup_logging()
 
 
+def setup_exit_handlers():
+    """
+    Trigger shutdown on exit of application.
+    Function have to be called only once - during the setup.
+    """
+    atexit.register(shutdown)
+
+
+def drop_exit_handlers():
+    """
+    Removes previously configured exit handlers
+    """
+    atexit.unregister(shutdown)
+
+
 def setup(endpoint: tt.Optional[str] = None, disable: tt.Optional[bool] = None) -> bool:
     """
-    Telemetry client setup function.
+    Telemetry client setup function (should not be called from a client code).
 
     Explicitly given arguments have the highest priority.
     If they are not given, we check the environment variables (EXASOL_TELEMETRY_XXX),
     if no environment value, we use defaults (DEFAULT_XXX).
 
-    If setup() was called before, we return the enabled status and do not reconfigure.
+    If setup() was called before, we reconfigure only when previous disable
+    option was different than a new one. On reconfiguration, we flush the buffers (if any).
+    In all other cases we return the enabled status without reconfiguration.
 
     :param endpoint: Telemetry endpoint to send data. If not given,
     default endpoint is used.
@@ -71,7 +89,9 @@ def setup(endpoint: tt.Optional[str] = None, disable: tt.Optional[bool] = None) 
     False if it was disabled
     """
     if config.was_setup():
-        return config.was_enabled()
+        if disable is None or disable != config.was_enabled():
+            return config.was_enabled()
+        shutdown()
     val_endpoint = get_value(endpoint, config.ENV_ENDPOINT, config.DEFAULT_ENDPOINT)
 
     # Checking the presence of CI=true env variable
@@ -99,6 +119,7 @@ def setup(endpoint: tt.Optional[str] = None, disable: tt.Optional[bool] = None) 
     config.store(conf)
     if enabled:
         setup_verbose_if_needed()
+        setup_exit_handlers()
         worker.start_worker()
     verbose.log("Setup is done, enabled=%s", conf.enabled)
     return conf.enabled
@@ -115,6 +136,7 @@ def shutdown(flush_buffers: bool = True):
         return
     verbose.log("Shutdown")
     worker.stop_worker(flush_buffers)
+    drop_exit_handlers()
 
 
 def disable():

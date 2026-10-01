@@ -97,6 +97,24 @@ def test_worker_proc_sent_quick(
     mock_post.assert_called_once()
 
 
+# Make sure that buffers are sent after reconfiguration
+@mock.patch("requests.post", return_value=mock.MagicMock(status_code=200))
+def test_worker_proc_sent_after_disable(
+    mock_post: mock.MagicMock,
+    telemetry_reset,
+    telemetry_unset_ci,
+    telemetry_unset_disable,
+):
+    # enable and send track feature
+    assert setup(disable=False)
+    track("product", "ver", "test")
+    # after reconfiguration we should be disabled and flushed the buffers
+    assert not setup(disable=True)
+    mock_post.assert_called_once()
+    assert config.was_setup()
+    assert not config.was_enabled()
+
+
 # Make sure that features are not sent if not enabled
 @mock.patch("requests.post")
 def test_worker_proc_not_sent_when_disabled(
@@ -112,6 +130,19 @@ def test_worker_proc_not_sent_when_disabled(
     shutdown(flush_buffers=True)
 
     mock_post.assert_not_called()
+
+
+@mock.patch("requests.post", side_effect=lambda *w, **kw: time.sleep(1000))
+def test_shutdown_exits_on_blocked_worker(
+    mock_post: mock.MagicMock,
+    telemetry_reset,
+    telemetry_unset_ci,
+    telemetry_unset_disable,
+):
+    assert setup(disable=False)
+    track("test", "0.1", "test-feature")
+    shutdown(flush_buffers=True)
+    mock_post.assert_called_once()
 
 
 @mock.patch("exasol.telemetry.client.worker.send_features")

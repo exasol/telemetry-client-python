@@ -19,6 +19,9 @@ MAX_QUEUE_CAPACITY = 10
 # requests' timeout value
 SEND_TIMEOUT_SECONDS = 30
 
+# how long to wait before thread exits
+THREAD_EXIT_TIMEOUT_SECONDS = 1
+
 # how long in seconds to wait before the first batch send
 DATA_SEND_FIRST_INTERVAL_SECONDS = 0.5
 
@@ -257,7 +260,7 @@ def start_worker() -> bool:
     if not config.was_enabled():
         return False
     _queue = queue.Queue(maxsize=MAX_QUEUE_CAPACITY)
-    _worker = threading.Thread(target=worker_proc, args=(_queue,))
+    _worker = threading.Thread(target=worker_proc, args=(_queue,), daemon=True)
     _worker.start()
     return True
 
@@ -265,6 +268,8 @@ def start_worker() -> bool:
 def stop_worker(flush_buffers: bool):
     """
     Gracefully stops the worker process.
+
+    In case of connectivity issues, flush of buffers might not happen.
     :param flush_buffers: if True, we'll try to send the buffers (if any),
     otherwise, we'll just shut down the worker process.
     """
@@ -272,10 +277,17 @@ def stop_worker(flush_buffers: bool):
 
     if _worker is None or _queue is None:
         return
-    if flush_buffers:
-        _queue.put(WorkerMessage.make_send_buffers())
-    _queue.put(WorkerMessage.make_terminate())
-    _worker.join()
+    try:
+        if flush_buffers:
+            _queue.put_nowait(WorkerMessage.make_send_buffers())
+        _queue.put_nowait(WorkerMessage.make_terminate())
+        _worker.join(timeout=THREAD_EXIT_TIMEOUT_SECONDS)
+    except queue.Full:
+        # rare situation - if the thread is blocked on send and
+        # we have lots of messages in the queue, we can have no capacity
+        # in the queue. In such cases, we just don't stop the thread,
+        # which is fine as thread is daemon.
+        pass
     _worker = None
     _queue = None
 
@@ -307,5 +319,8 @@ def track(
 
     global _queue
     if _queue is not None:
-        if _queue.not_full:
-            _queue.put(WorkerMessage.make_track(product_name, product_version, feature))
+        try:
+            msg = WorkerMessage.make_track(product_name, product_version, feature)
+            _queue.put_nowait(msg)
+        except queue.Full:
+            pass
