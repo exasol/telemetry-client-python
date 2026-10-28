@@ -25,7 +25,7 @@ dynamic = ["dependencies"]
 
 [dependency-groups]
 dev = [
-    "exasol-toolbox>=11.0.0,<12",
+    "exasol-toolbox>=12.0.0,<13",
     "types-requests>=2.32.4.20260107,<3",
     "poetry>=2.4.1,<3",
 ]
