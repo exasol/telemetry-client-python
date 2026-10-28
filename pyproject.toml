@@ -3,7 +3,7 @@ name = "exasol-telemetry-client"
 version = "0.1.5"
 description = ""
 authors = [{ name = "Exasol AG", email = "opensource@exasol.com" }]
-requires-python = ">=3.10,<4.0"
+requires-python = ">=3.11,<4.0"
 readme = "README.md"
 license = "MIT"
 keywords = [
@@ -12,7 +12,6 @@ keywords = [
 ]
 classifiers = [
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
